@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22My%20Habit%20Tracker%22,%22short_name%22:%22Habits%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23f4f6fa%22,%22theme_color%22:%22%23111827%22,%22icons%22:[]}">
+<title>My Habit Tracker + Pixel Dino Journal</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#f4f6fa;--card:#fff;--text:#172033;--muted:#7b8497;--line:#e7eaf0;--soft:#f7f8fa;--accent:#111827;--green:#16a34a}
+body.dark{--bg:#0d1117;--card:#161b22;--text:#f1f5f9;--muted:#9ca3af;--line:#2a3038;--soft:#20262f;--accent:#f1f5f9}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);padding:16px}
+.app{max-width:560px;margin:auto;padding-bottom:40px}
+header{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 2px 18px}
+h1{margin:0;font-size:30px}.date{color:var(--muted);margin-top:5px}
+.icon{border:0;background:var(--card);color:var(--text);border-radius:12px;padding:10px;font-size:20px}
+.card{background:var(--card);border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 5px 20px #0000000c}
+.progress-top,.month-head{display:flex;justify-content:space-between;align-items:center}
+.percent{font-size:20px;font-weight:bold}.bar{height:11px;background:#e9edf3;border-radius:20px;overflow:hidden;margin-top:11px}
+.fill{height:100%;width:0;background:var(--accent);border-radius:20px;transition:.25s}
+.quote{font-size:13px;color:var(--muted);margin-top:11px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.stat{text-align:center;background:var(--card);border-radius:16px;padding:13px;box-shadow:0 3px 12px #00000008}
+.stat strong{display:block;font-size:21px}.stat span{font-size:12px;color:var(--muted)}
+.title{font-weight:bold;font-size:18px;margin:20px 2px 10px}
+.week,.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{text-align:center;font-size:11px;color:var(--muted)}.dot{height:28px;width:28px;margin:5px auto 0;border-radius:50%;background:#e9edf3;display:grid;place-items:center;font-size:12px}
+.dot.active{background:#111827;color:white}.today{font-weight:bold;color:inherit}
+.cal-label{text-align:center;font-size:11px;color:var(--muted);padding-bottom:6px}
+.cell{min-height:42px;border:1px solid var(--line);border-radius:9px;background:var(--soft);padding:4px;position:relative;font-size:12px}
+.cell.muted{opacity:.35}.cell.today{outline:2px solid #111827}.cell.good{background:#dcfce7;color:#166534}
+.cell .count{position:absolute;right:4px;bottom:3px;font-size:9px}
+.month-name{font-weight:bold;font-size:17px}.month-head button{border:0;background:var(--soft);color:var(--text);border-radius:10px;padding:8px 12px}
+.habit{display:flex;align-items:center;gap:10px;padding:14px 2px;border-bottom:1px solid var(--line)}
+.habit:last-child{border-bottom:0}.check{width:24px;height:24px;accent-color:var(--green)}
+.info{flex:1;min-width:0}.name{font-weight:600;font-size:16px}.done{text-decoration:line-through;color:#9aa2b1}
+.meta{font-size:12px;color:var(--muted);margin-top:4px}.badge{display:inline-block;padding:3px 7px;border-radius:99px;background:var(--soft);margin-right:5px}
+.smallbtn{border:0;background:var(--soft);color:var(--text);border-radius:9px;padding:8px}.empty{text-align:center;color:var(--muted);padding:22px}
+.add{display:flex;gap:8px}.add input{flex:1;border:1px solid var(--line);border-radius:12px;padding:13px;background:var(--card);color:var(--text);outline:none}
+.add button,.primary{border:0;border-radius:12px;background:var(--accent);color:#fff;padding:0 17px}
+.actions{display:flex;gap:8px;margin-top:12px}.actions button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:11px;padding:10px}
+.settings{display:none}.settings.open{display:block}.tip{font-size:13px;color:var(--muted);line-height:1.5}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;justify-content:center;padding:12px}.modal.open{display:flex}
+.sheet{width:min(560px,100%);background:var(--card);border-radius:22px;padding:20px;color:var(--text)}
+.sheet h2{margin:0 0 15px}.sheet label{display:block;font-size:13px;color:var(--muted);margin:10px 0 5px}
+.sheet input,.sheet select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+.sheet-actions{display:flex;gap:8px;margin-top:15px}.sheet-actions button{flex:1;padding:12px;border-radius:11px;border:1px solid var(--line);background:var(--card);color:var(--text)}
+.sheet-actions .save{background:var(--accent);color:#fff}
+.notice{font-size:13px;color:var(--muted);padding:8px 0}
+.journal-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.journal-head input{flex:1;min-width:145px;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+.dino-banner{display:flex;align-items:center;gap:12px;background:var(--soft);padding:12px;border-radius:14px;margin-bottom:12px}
+.dino-pixel{font-size:30px;image-rendering:pixelated}.journal-input{display:flex;gap:8px;margin:10px 0}
+.journal-input input{flex:1;min-width:0;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+.journal-input button,.journal-save{border:0;border-radius:10px;background:var(--accent);color:white;padding:10px 14px}
+.task-row{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--line)}
+.task-row:last-child{border-bottom:0}.task-row input{width:19px;height:19px;accent-color:var(--green)}.task-label{flex:1;overflow-wrap:anywhere}.task-label.completed{text-decoration:line-through;color:var(--muted)}
+.thoughts{width:100%;min-height:130px;resize:vertical;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);font:inherit;line-height:1.5}
+.journal-note{font-size:12px;color:var(--muted);margin-top:8px}
+.game-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}
+.game-stat{background:var(--soft);border-radius:13px;padding:12px}.game-stat strong{display:block;font-size:20px}.game-stat span{font-size:12px;color:var(--muted)}
+.dino-stage{display:flex;align-items:center;gap:14px;padding:14px;background:var(--soft);border-radius:15px}.dino-big{font-size:48px;line-height:1}.game-bar{height:9px;border-radius:20px;background:var(--line);overflow:hidden;margin-top:8px}.game-bar span{display:block;height:100%;background:#22c55e;width:0;transition:width .25s}
+.reward-list,.badge-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}.reward,.achievement{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--card);font-size:13px}.reward button{margin-top:7px;width:100%;padding:8px;border:0;border-radius:9px;background:var(--accent);color:var(--bg)}.reward button:disabled{opacity:.45}.achievement.locked{opacity:.48;filter:grayscale(1)}.achievement strong{display:block;margin-bottom:4px}.week-report{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.week-report .game-stat{text-align:center}
+.chart-heading{display:flex;flex-direction:column;gap:3px;margin-bottom:12px}.activity-chart{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;align-items:end;min-height:145px;padding:8px 0 0}.chart-day{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}.chart-bars{height:105px;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px;border-bottom:1px solid var(--line);padding:0 2px}.chart-bar{width:40%;max-width:16px;min-height:2px;border-radius:5px 5px 0 0;transition:height .2s}.chart-bar.habit-bar{background:#22c55e}.chart-bar.task-bar{background:#60a5fa}.chart-label{font-size:10px;color:var(--muted)}.chart-values{font-size:10px;color:var(--muted);white-space:nowrap}.chart-legend{display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--muted)}.chart-legend span{display:flex;align-items:center;gap:6px}.chart-legend i{display:inline-block;width:9px;height:9px;border-radius:3px}.legend-habit{background:#22c55e}.legend-task{background:#60a5fa}.rate-track{height:10px;background:var(--line);border-radius:20px;overflow:hidden;margin:8px 0}.rate-fill{height:100%;width:0;background:#22c55e;border-radius:20px;transition:width .25s}
+
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div><h1>My Habits</h1><div class="date" id="date"></div></div>
+<button class="icon" id="theme" aria-label="Toggle dark mode">🌙</button>
+</header>
+
+<div class="card">
+<div class="progress-top"><strong>Today's Progress</strong><span class="percent" id="percentage">0%</span></div>
+<div class="bar"><div class="fill" id="progress"></div></div>
+<div class="quote" id="quote">🌱 Small steps every day.</div>
+</div>
+
+<div class="stats">
+<div class="stat"><strong id="total">0</strong><span>Habits</span></div>
+<div class="stat"><strong id="done">0</strong><span>Today</span></div>
+<div class="stat"><strong id="best">0</strong><span>Best streak</span></div>
+</div>
+
+<div class="title">My Habits</div>
+<div class="card">
+<div id="habits"></div>
+<div class="empty" id="empty">No habits yet. Add your first habit below.</div>
+</div>
+
+<div class="add">
+<input id="habitInput" maxlength="40" placeholder="Add a habit...">
+<button id="add">+</button>
+</div>
+
+<div class="actions">
+<button id="reset">↻ Reset today</button>
+<button id="settingsBtn">⚙️ Settings</button>
+</div>
+
+
+<div class="title">🦖 Pixel Dino — Daily Tasks & Thoughts</div>
+<div class="card" id="journalCard">
+  <div class="dino-banner"><div class="dino-pixel">🦖</div><div><strong>Your daily log</strong><div class="meta">Plan your day, save your thoughts, and revisit any date.</div></div></div>
+  <div class="journal-head"><label for="journalDate"><strong>Choose a day</strong></label><input type="date" id="journalDate"></div>
+  <div class="progress-top"><strong>Today's tasks</strong><span class="meta" id="taskCount">0/0 done</span></div>
+  <div id="taskList"></div>
+  <div class="journal-input"><input id="taskInput" maxlength="120" placeholder="Add a task for this day..."><button id="addTask">Add</button></div>
+  <div class="title">💭 Daily thoughts</div>
+  <textarea class="thoughts" id="thoughtInput" maxlength="5000" placeholder="What is on your mind today? Write your thoughts here..."></textarea>
+  <div class="journal-note" id="thoughtStatus">Your thoughts are saved on this device when you tap Save thoughts.</div>
+  <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="journal-save" id="saveThoughts">Save thoughts</button></div>
+  <div class="journal-note">Your daily tasks and thoughts stay on this device in this browser.</div>
+</div>
+
+
+
+<div class="title">🦖 Dino Growth & Rewards</div>
+<div class="card" id="gameCard">
+  <div class="dino-stage"><div class="dino-big" id="dinoAvatar">🥚</div><div style="flex:1"><strong id="dinoLevel">Dino Egg · Level 1</strong><div class="meta" id="dinoMessage">Complete habits and tasks to help your Dino grow.</div><div class="game-bar"><span id="dinoXpBar"></span></div><div class="meta" id="dinoXpText">0 XP</div></div></div>
+  <div class="game-grid"><div class="game-stat"><strong id="xpTotal">0</strong><span>✨ Total XP</span></div><div class="game-stat"><strong id="coinTotal">0</strong><span>🪙 Available coins</span></div></div>
+  <div class="title">🎁 Dino Rewards</div><div class="reward-list" id="rewardList"></div>
+  <div class="journal-note">Earn XP by completing habits and daily tasks. Rewards and progress are saved in this browser.</div>
+</div>
+
+<div class="title">📊 Weekly Report</div>
+<div class="card"><div class="week-report"><div class="game-stat"><strong id="weekHabits">0</strong><span>Habits done</span></div><div class="game-stat"><strong id="weekTasks">0</strong><span>Tasks done</span></div><div class="game-stat"><strong id="weekRate">0%</strong><span>Habit completion</span></div></div><div class="quote" id="weekSummary">Your weekly summary will appear here.</div></div>
+
+<div class="title">📈 Visual Data & Progress</div>
+<div class="card" id="chartsCard">
+  <div class="chart-heading"><strong>Last 7 days</strong><span class="meta">Daily completed habits and tasks</span></div>
+  <div id="activityChart" class="activity-chart" role="img" aria-label="Bar chart of completed habits and tasks over the last seven days"></div>
+  <div class="chart-legend"><span><i class="legend-habit"></i>Habits</span><span><i class="legend-task"></i>Tasks</span></div>
+  <div class="chart-heading" style="margin-top:20px"><strong>Habit completion rate</strong><span class="meta">Last 7 days</span></div>
+  <div class="rate-track"><div id="chartRateFill" class="rate-fill"></div></div>
+  <div class="meta" id="chartRateText">0% completion</div>
+  <div class="journal-note">Charts update automatically as you complete habits and tasks.</div>
+</div>
+
+<div class="title">🏆 Achievement Badges</div>
+<div class="card"><div class="badge-list" id="badgeList"></div></div>
+
+
+
+<div class="title">This Week</div>
+<div class="card"><div class="week" id="week"></div></div>
+
+<div class="title">Monthly Tracker</div>
+<div class="card">
+<div class="month-head"><button id="prev">‹</button><div class="month-name" id="monthName"></div><button id="next">›</button></div>
+<div class="calendar" id="calendar" style="margin-top:12px"></div>
+</div>
+
+
+<div class="settings" id="settings">
+<div class="title">App Settings</div>
+<div class="card">
+<div class="row">
+<button class="smallbtn" id="install">📲 Install App</button>
+<button class="smallbtn" id="notify">🔔 Notifications</button>
+</div>
+<div class="notice">Reminder times are saved with habits. Install this tracker to your Home Screen for an app-like experience.</div>
+</div>
+</div>
+
+<div class="title">💡 Tip</div>
+<div class="card tip">Start with 2–3 habits. Build consistency first, then add more.</div>
+</div>
+
+<div class="modal" id="modal">
+<div class="sheet">
+<h2>Edit Habit</h2>
+<label>Habit name</label><input id="editName" maxlength="40">
+<label>Category</label>
+<select id="editCat"><option>Health</option><option>Study</option><option>Mind</option><option>Spiritual</option><option>Fitness</option><option>Personal</option><option>Other</option></select>
+<label>Reminder time (optional)</label><input id="editTime" type="time">
+<div class="sheet-actions"><button id="cancel">Cancel</button><button class="save" id="saveEdit">Save</button></div>
+</div>
+</div>
+
+<script>
+"use strict";
+
+const KEY = "habit_tracker_v4_2_app";
+let data = {habits:[], history:{}, dark:false, journal:{}};
+let view = new Date();
+view.setDate(1);
+let editId = null;
+let deferredInstall = null;
+
+try {
+    const saved = localStorage.getItem(KEY);
+    if (saved) data = JSON.parse(saved);
+    if (!data || !Array.isArray(data.habits) || typeof data.history !== "object") throw new Error();
+    if (!data.journal || typeof data.journal !== "object") data.journal = {};
+} catch (e) {
+    data = {habits:[], history:{}, dark:false, journal:{}};
+}
+
+function save() {
+    localStorage.setItem(KEY, JSON.stringify(data));
+}
+
+function dateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth()+1).padStart(2,"0");
+    const d = String(date.getDate()).padStart(2,"0");
+    return y + "-" + m + "-" + d;
+}
+
+function todayKey() {
+    return dateKey(new Date());
+}
+
+function isDone(id, dateKeyValue) {
+    const k = dateKeyValue || todayKey();
+    return !!(data.history[k] && data.history[k][id] === true);
+}
+
+function setDone(id, value) {
+    const k = todayKey();
+    if (!data.history[k]) data.history[k] = {};
+    data.history[k][id] = value;
+}
+
+document.getElementById("date").textContent = new Date().toLocaleDateString("en-IN", {
+    weekday:"long", day:"numeric", month:"long", year:"numeric"
+});
+
+if (data.dark) document.body.classList.add("dark");
+
+function addHabit() {
+    const input = document.getElementById("habitInput");
+    const name = input.value.trim();
+    if (!name) return;
+
+    data.habits.push({
+        id: String(Date.now()) + Math.random().toString(16).slice(2),
+        name: name,
+        cat: "Personal",
+        time: ""
+    });
+
+    input.value = "";
+    save();
+    render();
+}
+
+function toggleHabit(id) {
+    setDone(id, !isDone(id));
+    save();
+    render();
+}
+
+function deleteHabit(id) {
+    if (!confirm("Delete this habit? Its saved history will also be removed.")) return;
+    data.habits = data.habits.filter(function(h) { return h.id !== id; });
+    Object.keys(data.history).forEach(function(k) {
+        delete data.history[k][id];
+    });
+    save();
+    render();
+}
+
+function currentStreak(id) {
+    let count = 0;
+    const d = new Date();
+
+    while (isDone(id, dateKey(d))) {
+        count++;
+        d.setDate(d.getDate()-1);
+    }
+    return count;
+}
+
+function bestStreak(id) {
+    const keys = Object.keys(data.history).sort();
+    let best = 0;
+    let current = 0;
+
+    keys.forEach(function(k) {
+        if (isDone(id, k)) {
+            current++;
+            if (current > best) best = current;
+        } else {
+            current = 0;
+        }
+    });
+
+    return best;
+}
+
+function renderStats() {
+    const total = data.habits.length;
+    const completed = data.habits.filter(function(h) {
+        return isDone(h.id);
+    }).length;
+
+    const percent = total ? Math.round(completed / total * 100) : 0;
+
+    document.getElementById("percentage").textContent = percent + "%";
+    document.getElementById("progress").style.width = percent + "%";
+    document.getElementById("total").textContent = total;
+    document.getElementById("done").textContent = completed;
+
+    let best = 0;
+    data.habits.forEach(function(h) {
+        best = Math.max(best, bestStreak(h.id));
+    });
+    document.getElementById("best").textContent = best;
+
+    if (percent === 100 && total > 0) {
+        document.getElementById("quote").textContent = "🎉 Everything done today!";
+    } else if (percent >= 50) {
+        document.getElementById("quote").textContent = "🔥 You're doing great!";
+    } else {
+        document.getElementById("quote").textContent = "🌱 Small steps every day.";
+    }
+}
+
+function renderWeek() {
+    const el = document.getElementById("week");
+    el.innerHTML = "";
+
+    const start = new Date();
+    start.setHours(12,0,0,0);
+    start.setDate(start.getDate() - 6);
+
+    const names = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+
+        const box = document.createElement("div");
+        box.className = "day";
+        box.textContent = names[d.getDay()];
+
+        const dot = document.createElement("div");
+        dot.className = "dot";
+
+        const k = dateKey(d);
+        const anyDone = data.habits.some(function(h) {
+            return isDone(h.id, k);
+        });
+
+        if (anyDone) {
+            dot.classList.add("active");
+            dot.textContent = "✓";
+        }
+
+        box.appendChild(dot);
+        el.appendChild(box);
+    }
+}
+
+function renderCalendar() {
+    const el = document.getElementById("calendar");
+    el.innerHTML = "";
+
+    ["S","M","T","W","T","F","S"].forEach(function(label) {
+        const div = document.createElement("div");
+        div.className = "cal-label";
+        div.textContent = label;
+        el.appendChild(div);
+    });
+
+    const year = view.getFullYear();
+    const month = view.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const previousMonthDays = new Date(year, month, 0).getDate();
+
+    for (let i = 0; i < 42; i++) {
+        let number = i - firstDay + 1;
+        let cellYear = year;
+        let cellMonth = month;
+
+        if (number < 1) {
+            number = previousMonthDays + number;
+            cellMonth--;
+            if (cellMonth < 0) {
+                cellMonth = 11;
+                cellYear--;
+            }
+        } else if (number > daysInMonth) {
+            number -= daysInMonth;
+            cellMonth++;
+            if (cellMonth > 11) {
+                cellMonth = 0;
+                cellYear++;
+            }
+        }
+
+        const d = new Date(cellYear, cellMonth, number);
+        const k = dateKey(d);
+        const cell = document.createElement("div");
+        cell.className = "cell";
+
+        if (cellMonth !== month) cell.classList.add("muted");
+        if (k === todayKey()) cell.classList.add("today");
+
+        const count = data.habits.filter(function(h) {
+            return isDone(h.id, k);
+        }).length;
+
+        if (count > 0) cell.classList.add("good");
+
+        const numberDiv = document.createElement("div");
+        numberDiv.textContent = number;
+        cell.appendChild(numberDiv);
+
+        if (count > 0) {
+            const countDiv = document.createElement("div");
+            countDiv.className = "count";
+            countDiv.textContent = count + "✓";
+            cell.appendChild(countDiv);
+        }
+
+        el.appendChild(cell);
+    }
+
+    document.getElementById("monthName").textContent =
+        view.toLocaleDateString("en-IN", {month:"long", year:"numeric"});
+}
+
+function openEdit(id) {
+    const habit = data.habits.find(function(h) { return h.id === id; });
+    if (!habit) return;
+
+    editId = id;
+    document.getElementById("editName").value = habit.name;
+    document.getElementById("editCat").value = habit.cat || "Personal";
+    document.getElementById("editTime").value = habit.time || "";
+    document.getElementById("modal").classList.add("open");
+}
+
+function renderHabits() {
+    const box = document.getElementById("habits");
+    box.innerHTML = "";
+
+    document.getElementById("empty").style.display =
+        data.habits.length ? "none" : "block";
+
+    data.habits.forEach(function(h) {
+        const row = document.createElement("div");
+        row.className = "habit";
+
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.className = "check";
+        check.checked = isDone(h.id);
+        check.addEventListener("change", function() {
+            toggleHabit(h.id);
+        });
+
+        const info = document.createElement("div");
+        info.className = "info";
+
+        const name = document.createElement("div");
+        name.className = "name" + (check.checked ? " done" : "");
+        name.textContent = h.name;
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent =
+            (h.cat || "Personal") + " · 🔥 " + currentStreak(h.id) +
+            " day streak" + (h.time ? " · ⏰ " + h.time : "");
+
+        info.appendChild(name);
+        info.appendChild(meta);
+
+        const edit = document.createElement("button");
+        edit.className = "smallbtn";
+        edit.textContent = "✏️";
+        edit.addEventListener("click", function() {
+            openEdit(h.id);
+        });
+
+        const del = document.createElement("button");
+        del.className = "smallbtn";
+        del.textContent = "🗑️";
+        del.addEventListener("click", function() {
+            deleteHabit(h.id);
+        });
+
+        row.appendChild(check);
+        row.appendChild(info);
+        row.appendChild(edit);
+        row.appendChild(del);
+        box.appendChild(row);
+    });
+}
+
+let journalSelectedDate = todayKey();
+
+function getJournalEntry(key) {
+    if (!data.journal[key]) data.journal[key] = {tasks:[], thoughts:""};
+    if (!Array.isArray(data.journal[key].tasks)) data.journal[key].tasks = [];
+    if (typeof data.journal[key].thoughts !== "string") data.journal[key].thoughts = "";
+    return data.journal[key];
+}
+
+function renderJournal() {
+    const entry = getJournalEntry(journalSelectedDate);
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+    entry.tasks.forEach(function(task) {
+        const row = document.createElement("div");
+        row.className = "task-row";
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.checked = !!task.done;
+        check.setAttribute("aria-label", "Mark task complete");
+        check.addEventListener("change", function() {
+            task.done = check.checked; save(); renderJournal(); renderGamification();
+        });
+        const label = document.createElement("div");
+        label.className = "task-label" + (task.done ? " completed" : "");
+        label.textContent = task.text;
+        const del = document.createElement("button");
+        del.className = "smallbtn"; del.textContent = "✕"; del.setAttribute("aria-label", "Delete task");
+        del.addEventListener("click", function() {
+            entry.tasks = entry.tasks.filter(function(t) { return t.id !== task.id; }); save(); renderJournal(); renderGamification();
+        });
+        row.appendChild(check); row.appendChild(label); row.appendChild(del); list.appendChild(row);
+    });
+    if (!entry.tasks.length) {
+        const empty = document.createElement("div"); empty.className = "journal-note"; empty.textContent = "No tasks yet — add one above."; list.appendChild(empty);
+    }
+    const completed = entry.tasks.filter(function(t) { return t.done; }).length;
+    document.getElementById("taskCount").textContent = completed + "/" + entry.tasks.length + " done";
+    document.getElementById("thoughtInput").value = entry.thoughts;
+    document.getElementById("thoughtStatus").textContent = entry.thoughts ? "Saved thoughts for " + journalSelectedDate + "." : "No thoughts saved for this day yet.";
+}
+
+function addTask() {
+    const input = document.getElementById("taskInput");
+    const text = input.value.trim();
+    if (!text) return;
+    const entry = getJournalEntry(journalSelectedDate);
+    entry.tasks.push({id: String(Date.now()) + Math.random().toString(16).slice(2), text:text, done:false});
+    input.value = ""; save(); renderJournal(); renderGamification();
+}
+
+document.getElementById("journalDate").value = journalSelectedDate;
+document.getElementById("journalDate").addEventListener("change", function() {
+    if (this.value) { journalSelectedDate = this.value; renderJournal(); }
+});
+document.getElementById("addTask").addEventListener("click", addTask);
+document.getElementById("taskInput").addEventListener("keydown", function(e) { if (e.key === "Enter") addTask(); });
+document.getElementById("saveThoughts").addEventListener("click", function() {
+    const entry = getJournalEntry(journalSelectedDate);
+    entry.thoughts = document.getElementById("thoughtInput").value;
+    save();
+    document.getElementById("thoughtStatus").textContent = "Thoughts saved for " + journalSelectedDate + " ✓";
+    renderGamification();
+});
+
+function getGamificationStats() {
+    let habitCompletions = 0, taskCompletions = 0, journalDays = 0;
+    Object.keys(data.history || {}).forEach(function(k) {
+        const day = data.history[k] || {};
+        data.habits.forEach(function(h) { if (day[h.id] === true) habitCompletions++; });
+    });
+    Object.keys(data.journal || {}).forEach(function(k) {
+        const entry = data.journal[k] || {};
+        taskCompletions += (Array.isArray(entry.tasks) ? entry.tasks.filter(function(t) { return t.done; }).length : 0);
+        if ((entry.thoughts || '').trim() || (Array.isArray(entry.tasks) && entry.tasks.length)) journalDays++;
+    });
+    const xp = habitCompletions * 10 + taskCompletions * 5;
+    const earnedCoins = habitCompletions * 5 + taskCompletions * 2;
+    if (!Array.isArray(data.unlockedRewards)) data.unlockedRewards = [];
+    if (typeof data.spentCoins !== 'number') data.spentCoins = 0;
+    return {habitCompletions, taskCompletions, journalDays, xp, earnedCoins, coins:Math.max(0, earnedCoins-data.spentCoins)};
+}
+
+const DINO_STAGES = [
+    {min:0, name:'Dino Egg', emoji:'🥚', next:50, message:'Your adventure is just beginning!'},
+    {min:50, name:'Baby Dino', emoji:'🐣', next:150, message:'Your Dino has hatched! Keep going!'},
+    {min:150, name:'Growing Dino', emoji:'🦖', next:300, message:'Your Dino is growing stronger!'},
+    {min:300, name:'Mighty Dino', emoji:'🐲', next:600, message:'Amazing progress — your Dino is mighty!'},
+    {min:600, name:'Legendary Dino', emoji:'🐉', next:1000, message:'Legendary status unlocked. Keep your steady pace!'}
+];
+const DINO_REWARDS = [
+    {id:'leaf',name:'Leaf Hat',emoji:'🍃',cost:25},
+    {id:'star',name:'Star Crown',emoji:'👑',cost:60},
+    {id:'party',name:'Party Dino',emoji:'🎉',cost:100},
+    {id:'cosmic',name:'Cosmic Dino',emoji:'🌌',cost:180}
+];
+
+function renderGamification() {
+    const stats = getGamificationStats();
+    const stage = DINO_STAGES.slice().reverse().find(function(x) { return stats.xp >= x.min; }) || DINO_STAGES[0];
+    const next = stage.next;
+    const previous = stage.min;
+    const progress = stage.name === 'Legendary Dino' ? 100 : Math.max(0, Math.min(100, (stats.xp-previous)/(next-previous)*100));
+    const unlocked = DINO_REWARDS.filter(function(r) { return data.unlockedRewards.includes(r.id); });
+    const displayReward = unlocked.length ? unlocked[unlocked.length-1] : null;
+    document.getElementById('dinoAvatar').textContent = displayReward ? displayReward.emoji : stage.emoji;
+    document.getElementById('dinoLevel').textContent = stage.name + ' · Level ' + (DINO_STAGES.indexOf(stage)+1);
+    document.getElementById('dinoMessage').textContent = stage.message;
+    document.getElementById('dinoXpBar').style.width = progress + '%';
+    document.getElementById('dinoXpText').textContent = stage.name === 'Legendary Dino' ? stats.xp + ' XP · Max stage reached!' : stats.xp + ' / ' + next + ' XP to next stage';
+    document.getElementById('xpTotal').textContent = stats.xp;
+    document.getElementById('coinTotal').textContent = stats.coins;
+    const rewards = document.getElementById('rewardList'); rewards.innerHTML = '';
+    DINO_REWARDS.forEach(function(r) {
+        const owned = data.unlockedRewards.includes(r.id);
+        const card = document.createElement('div'); card.className='reward';
+        const title = document.createElement('strong'); title.textContent = r.emoji + ' ' + r.name;
+        const cost = document.createElement('div'); cost.className='meta'; cost.textContent = owned ? 'Unlocked ✓' : '🪙 ' + r.cost + ' coins';
+        const btn = document.createElement('button'); btn.textContent = owned ? 'Owned' : 'Unlock'; btn.disabled = owned || stats.coins < r.cost;
+        btn.addEventListener('click', function() {
+            const fresh = getGamificationStats();
+            if (data.unlockedRewards.includes(r.id) || fresh.coins < r.cost) return;
+            data.spentCoins += r.cost; data.unlockedRewards.push(r.id); save(); render();
+        });
+        card.appendChild(title); card.appendChild(cost); card.appendChild(btn); rewards.appendChild(card);
+    });
+
+    const weekStart = new Date(); weekStart.setHours(12,0,0,0); weekStart.setDate(weekStart.getDate()-6);
+    let weekHabitDone=0, weekHabitPossible=0, weekTaskDone=0;
+    for (let i=0;i<7;i++) {
+        const d=new Date(weekStart); d.setDate(weekStart.getDate()+i); const k=dateKey(d);
+        data.habits.forEach(function(h) { weekHabitPossible++; if (isDone(h.id,k)) weekHabitDone++; });
+        const entry=(data.journal||{})[k]; if (entry && Array.isArray(entry.tasks)) weekTaskDone += entry.tasks.filter(function(t) { return t.done; }).length;
+    }
+    const rate=weekHabitPossible ? Math.round(weekHabitDone/weekHabitPossible*100) : 0;
+    document.getElementById('weekHabits').textContent=weekHabitDone;
+    document.getElementById('weekTasks').textContent=weekTaskDone;
+    document.getElementById('weekRate').textContent=rate+'%';
+    document.getElementById('weekSummary').textContent = weekHabitDone===0 && weekTaskDone===0 ? 'Your week is a fresh start — complete a habit or task to begin your report.' : 'You completed ' + weekHabitDone + ' habit check-ins and ' + weekTaskDone + ' tasks in the last 7 days. Every small step counts!';
+
+    const best=Math.max(0,...data.habits.map(function(h){return bestStreak(h.id);}));
+    const badges=[
+      {emoji:'🌱',name:'First Step',desc:'Complete 1 habit',ok:stats.habitCompletions>=1},
+      {emoji:'🔥',name:'Habit Builder',desc:'Complete 7 habits',ok:stats.habitCompletions>=7},
+      {emoji:'💯',name:'Century Club',desc:'Complete 50 habits',ok:stats.habitCompletions>=50},
+      {emoji:'🗓️',name:'Week Warrior',desc:'Reach a 7-day streak',ok:best>=7},
+      {emoji:'🦕',name:'Dino Helper',desc:'Complete 10 tasks',ok:stats.taskCompletions>=10},
+      {emoji:'💭',name:'Thoughtful',desc:'Log 7 different days',ok:stats.journalDays>=7},
+      {emoji:'✨',name:'XP Explorer',desc:'Earn 100 XP',ok:stats.xp>=100},
+      {emoji:'🪙',name:'Coin Collector',desc:'Earn 50 coins total',ok:stats.earnedCoins>=50}
+    ];
+    const badgeList=document.getElementById('badgeList'); badgeList.innerHTML='';
+    badges.forEach(function(b) { const el=document.createElement('div'); el.className='achievement'+(b.ok?'':' locked'); const name=document.createElement('strong'); name.textContent=b.emoji+' '+b.name+(b.ok?' ✓':''); const desc=document.createElement('div'); desc.textContent=b.desc; el.appendChild(name); el.appendChild(desc); badgeList.appendChild(el); });
+}
+
+function renderCharts() {
+    const container = document.getElementById('activityChart');
+    if (!container) return;
+    container.innerHTML = '';
+    const days = [];
+    const base = new Date(); base.setHours(12,0,0,0);
+    for (let i=6; i>=0; i--) {
+        const d = new Date(base); d.setDate(base.getDate()-i);
+        const key = dateKey(d);
+        const dayData = data.history[key] || {};
+        let habitsDone = 0;
+        data.habits.forEach(function(h) { if (dayData[h.id] === true) habitsDone++; });
+        const entry = (data.journal || {})[key] || {};
+        const tasksDone = Array.isArray(entry.tasks) ? entry.tasks.filter(function(t) { return t.done; }).length : 0;
+        days.push({date:d, key:key, habits:habitsDone, tasks:tasksDone});
+    }
+    const maxValue = Math.max(1, ...days.map(function(x) { return Math.max(x.habits, x.tasks); }));
+    days.forEach(function(day) {
+        const col = document.createElement('div'); col.className = 'chart-day';
+        const values = document.createElement('div'); values.className = 'chart-values'; values.textContent = day.habits + '/' + day.tasks;
+        const bars = document.createElement('div'); bars.className = 'chart-bars';
+        const habitBar = document.createElement('div'); habitBar.className = 'chart-bar habit-bar'; habitBar.style.height = Math.max(2, day.habits/maxValue*100) + 'px'; habitBar.title = day.habits + ' habits completed';
+        const taskBar = document.createElement('div'); taskBar.className = 'chart-bar task-bar'; taskBar.style.height = Math.max(2, day.tasks/maxValue*100) + 'px'; taskBar.title = day.tasks + ' tasks completed';
+        bars.appendChild(habitBar); bars.appendChild(taskBar);
+        const label = document.createElement('div'); label.className = 'chart-label'; label.textContent = day.date.toLocaleDateString('en-IN', {weekday:'short'});
+        col.appendChild(values); col.appendChild(bars); col.appendChild(label); container.appendChild(col);
+    });
+    let possible = 0, done = 0;
+    days.forEach(function(day) {
+        data.habits.forEach(function(h) { possible++; if (isDone(h.id, day.key)) done++; });
+    });
+    const rate = possible ? Math.round(done/possible*100) : 0;
+    document.getElementById('chartRateFill').style.width = rate + '%';
+    document.getElementById('chartRateText').textContent = rate + '% habit completion (' + done + ' of ' + possible + ' check-ins)';
+}
+
+function render() {
+    renderStats();
+    renderGamification();
+    renderCharts();
+    renderWeek();
+    renderCalendar();
+    renderHabits();
+    renderJournal();
+}
+
+document.getElementById("add").addEventListener("click", addHabit);
+
+document.getElementById("habitInput").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") addHabit();
+});
+
+document.getElementById("reset").addEventListener("click", function() {
+    if (!confirm("Reset all of today's checkmarks?")) return;
+    data.history[todayKey()] = {};
+    save();
+    render();
+});
+
+document.getElementById("settingsBtn").addEventListener("click", function() {
+    document.getElementById("settings").classList.toggle("open");
+});
+
+document.getElementById("theme").addEventListener("click", function() {
+    data.dark = !data.dark;
+    document.body.classList.toggle("dark", data.dark);
+    document.getElementById("theme").textContent = data.dark ? "☀️" : "🌙";
+    save();
+});
+
+document.getElementById("prev").addEventListener("click", function() {
+    view.setMonth(view.getMonth() - 1);
+    renderCalendar();
+});
+
+document.getElementById("next").addEventListener("click", function() {
+    view.setMonth(view.getMonth() + 1);
+    renderCalendar();
+});
+
+document.getElementById("cancel").addEventListener("click", function() {
+    document.getElementById("modal").classList.remove("open");
+});
+
+document.getElementById("saveEdit").addEventListener("click", function() {
+    const habit = data.habits.find(function(h) { return h.id === editId; });
+    if (!habit) return;
+
+    const name = document.getElementById("editName").value.trim();
+    if (name) habit.name = name;
+    habit.cat = document.getElementById("editCat").value;
+    habit.time = document.getElementById("editTime").value;
+
+    document.getElementById("modal").classList.remove("open");
+    save();
+    render();
+});
+
+document.getElementById("notify").addEventListener("click", async function() {
+    if (!("Notification" in window)) {
+        alert("This browser does not support notifications.");
+        return;
+    }
+
+    const permission = await Notification.requestPermission();
+    alert(permission === "granted"
+        ? "Notifications are enabled."
+        : "Notification permission was not granted.");
+});
+
+document.getElementById("install").addEventListener("click", function() {
+    if (deferredInstall) {
+        deferredInstall.prompt();
+    } else {
+        alert("Open the browser menu and choose 'Add to Home screen' or 'Install app' to use Habit Tracker like a normal app.");
+    }
+});
+
+window.addEventListener("beforeinstallprompt", function(e) {
+    e.preventDefault();
+    deferredInstall = e;
+});
+
+document.getElementById("theme").textContent = data.dark ? "☀️" : "🌙";
+
+render();
+</script>
+</body>
+</html>
