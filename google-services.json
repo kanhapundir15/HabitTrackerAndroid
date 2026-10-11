@@ -9,7 +9,54 @@
       "client_info": {
         "mobilesdk_app_id": "1:553076799097:android:386c1193928e26abb406a8",
         "android_client_info": {
+          "package_name": "{
+  "project_info": {
+    "project_number": "553076799097",
+    "project_id": "habittracker-c1800",
+    "storage_bucket": "habittracker-c1800.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:553076799097:android:386c1193928e26abb406a8",
+        "android_client_info": {
           "package_name": "Habit.Tracker15"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiARoxYqri_-0iQlGP7mF__NJUQdozwTs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:553076799097:android:bd7f053f1b30dc17b406a8",
+        "android_client_info": {
+          "package_name": "com.aarohi.habittracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiARoxYqri_-0iQlGP7mF__NJUQdozwTs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}"
         }
       },
       "oauth_client": [],
