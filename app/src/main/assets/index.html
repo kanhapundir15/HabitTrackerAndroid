@@ -781,5 +781,19 @@ render();
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDl6Q7fgG5-Hv9Oc6E6aJndOZ46aludFaw",
+    authDomain: "habittracker-ce8c3.firebaseapp.com",
+    projectId: "habittracker-ce8c3",
+    storageBucket: "habittracker-ce8c3.firebasestorage.app",
+    messagingSenderId: "285639914937",
+    appId: "1:285639914937:web:71fb86f4c1a8e97bbdb268"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+</script>
 </body>
 </html>
